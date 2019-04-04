@@ -33,12 +33,16 @@ let persons = [
 
   app.post('/api/persons', (request, response) => {
     const body = request.body
+    console.log(request.headers)
 
-    if (body.name=== undefined)  {
-      return response.status(400).json({ error: 'nimi puuttuu!' })
+    if (!body.name) {
+      return response.status(400).json({error:'nimi puuttuu!'})
     }
     if (persons.find(p=> p.name === body.name)) {
       return response.status(400).json({ error: 'nimi on jo listalla!' })
+    }
+    if (!body.number) {
+      return response.status(400).json({error:'numero puuttuu!'})
     }
   
     const person = {
