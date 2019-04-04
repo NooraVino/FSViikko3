@@ -1,5 +1,8 @@
 const express = require('express')
 const app = express()
+const bodyParser = require('body-parser')
+
+app.use(bodyParser.json())
 
 let persons = [
     {
@@ -28,6 +31,29 @@ let persons = [
     res.json(persons)
   })
 
+  app.post('/api/persons', (request, response) => {
+    const body = request.body
+
+    if (body.name=== undefined)  {
+      return response.status(400).json({ error: 'nimi puuttuu!' })
+    }
+    if (persons.find(p=> p.name === body.name)) {
+      return response.status(400).json({ error: 'nimi on jo listalla!' })
+    }
+  
+    const person = {
+      id: generateId(),
+      name: body.name,
+      number: body.number,
+      
+    }
+  
+    persons = persons.concat(person)
+  
+    response.json(person)
+    
+  })
+
   app.get('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
     const person = persons.find(p => p.id === id)
@@ -49,7 +75,13 @@ let persons = [
   app.get('/info', (req, res) => {
     res.json('luettelossa on ' + persons.length + ' henkilöä' + new Date())
   })
-
+  
+  const generateId = () => {
+    const maxId = persons.length > 0
+      ? Math.max(...persons.map(p => p.id))
+      : 0
+    return maxId + 1
+  }
 
 
 const PORT = 3001
