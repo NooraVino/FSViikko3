@@ -12,10 +12,12 @@ const url =
 
 mongoose.connect(url, { useNewUrlParser: true })
 
-const Person = mongoose.model('Person', {
+const personSchema = new mongoose.Schema({
   name: String,
-  number: String,
+  number: String
 })
+  
+const Person = mongoose.model('Person', personSchema)
 
 if (process.argv.length === 3) {
   Person.find({}).then(result => {
