@@ -8,25 +8,31 @@ if ( process.argv.length<3 ) {
 const password = process.argv[2]
 
 const url =
-  `mongodb+srv://fullstack:${password}@cluster0-ucmtq.mongodb.net/test?retryWrites=true`
+  `mongodb+srv://fullstack:${password}@cluster0-ucmtq.mongodb.net/kokeiluluettelo?retryWrites=true`
 
 mongoose.connect(url, { useNewUrlParser: true })
 
-const noteSchema = new mongoose.Schema({
-  content: String,
-  date: Date,
-  important: Boolean,
+const Person = mongoose.model('Person', {
+  name: String,
+  number: String,
 })
 
-const Note = mongoose.model('Note', noteSchema)
+if (process.argv.length === 3) {
+  Person.find({}).then(result => {
+    console.log('puhelinluettelo:')
+    result.forEach(person => {
+      console.log(person.name, person.number)
+    })
+    mongoose.connection.close()
+  })
+} else {
+  const name = process.argv[3]
+  const number = process.argv[4]
+  const person = new Person({ name, number })
+  person.save().then(response => {
+    console.log(`lisätään ${name} numero ${number} luetteloon`)
+    mongoose.connection.close()
+  })
+ 
+}
 
-const note = new Note({
-  content: 'HTML on helppoa',
-  date: new Date(),
-  important: true,
-})
-
-note.save().then(response => {
-  console.log('note saved!');
-  mongoose.connection.close();
-})
