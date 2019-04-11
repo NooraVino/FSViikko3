@@ -1,39 +1,46 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
+
 
 app.use(cors())
 app.use(bodyParser.json())
 app.use(morgan('tiny'))
 app.use(express.static('build'))
 
-let persons = [
-    {
-      id: 1,
-      name: 'Arto Hellas',
-      number: '040-636363',
+
+
+// let persons = [
+//     {
+//       id: 1,
+//       name: 'Arto Hellas',
+//       number: '040-636363',
     
-    },
-    {
-      id: 2,
-      name: 'Arttu Viskari',
-      number: '056-84848484',
-    },
-    {
-      id: 3,
-      name: 'Jaahas',
-      number: '83838-030303'
+//     },
+//     {
+//       id: 2,
+//       name: 'Arttu Viskari',
+//       number: '056-84848484',
+//     },
+//     {
+//       id: 3,
+//       name: 'Jaahas',
+//       number: '83838-030303'
     
-    },
-  ]
+//     },
+//   ]
   app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
   })
   
-  app.get('/api/persons', (req, res) => {
-    res.json(persons)
+  app.get('/api/persons', (request, response) => {
+    Person.find({}).then(persons=> {
+      response.json(persons.map(p => p.toJSON()))
+    })
   })
 
   app.post('/api/persons', (request, response) => {
@@ -93,7 +100,7 @@ let persons = [
   }
 
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
