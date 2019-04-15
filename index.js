@@ -14,25 +14,25 @@ app.use(express.static('build'))
 
 
 
-let persons = [
-    {
-      id: 1,
-      name: 'Arto Hellas',
-      number: '040-636363',
+// let persons = [
+//     {
+//       id: 1,
+//       name: 'Arto Hellas',
+//       number: '040-636363',
     
-    },
-    {
-      id: 2,
-      name: 'Arttu Viskari',
-      number: '056-84848484',
-    },
-    {
-      id: 3,
-      name: 'Jaahas',
-      number: '83838-030303'
+//     },
+//     {
+//       id: 2,
+//       name: 'Arttu Viskari',
+//       number: '056-84848484',
+//     },
+//     {
+//       id: 3,
+//       name: 'Jaahas',
+//       number: '83838-030303'
     
-    },
-  ]
+//     },
+//   ]
   app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
   })
@@ -49,18 +49,18 @@ let persons = [
     })
   })
 
-  app.post('/api/persons', (request, response) => {
+  app.post('/api/persons', (request, response, next) => {
     const body = request.body
 
-    if (!body.name) {
-      return response.status(400).json({error:'nimi puuttuu!'})
-    }
-    if (persons.find(p=> p.name === body.name)) {
-      return response.status(400).json({ error: 'nimi on jo listalla!' })
-    }
-    if (!body.number) {
-      return response.status(400).json({error:'numero puuttuu!'})
-    }
+    // if (!body.name) {
+    //   return response.status(400).json({error:'nimi puuttuu!'})
+    // }
+    // if (persons.find(p=> p.name === body.name)) {
+    //   return response.status(400).json({ error: 'nimi on jo listalla!' })
+    // }
+    // if (!body.number) {
+    //   return response.status(400).json({error:'numero puuttuu!'})
+    // }
   
     const person = new Person({
       id: generateId(),
@@ -71,8 +71,25 @@ let persons = [
   
     person.save().then(savedPerson => {
       response.json(savedPerson.toJSON())
+      .catch(error => next(error))
     })   
   })
+
+  app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+
+    const person =  {
+      name: body.name,
+      number: body.number
+    }
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson.toJSON())
+    })
+    .catch(error => next(error))
+})
+
+  
   
 
   app.get('/api/persons/:id', (request, response, next) => {
@@ -102,6 +119,7 @@ let persons = [
 
 })
   const generateId = () => {
+    const persons = Person.find({})
     const maxId = persons.length > 0
       ? Math.max(...persons.map(p => p.id))
       : 0
@@ -114,7 +132,6 @@ let persons = [
     if (error.name === 'CastError' && error.kind === 'ObjectId') {
       return response.status(400).send({ error: 'id väärässä muodossa' })
     } 
-  
     next(error)
   }
   
