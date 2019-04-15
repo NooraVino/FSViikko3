@@ -14,27 +14,33 @@ app.use(express.static('build'))
 
 
 
-// let persons = [
-//     {
-//       id: 1,
-//       name: 'Arto Hellas',
-//       number: '040-636363',
+let persons = [
+    {
+      id: 1,
+      name: 'Arto Hellas',
+      number: '040-636363',
     
-//     },
-//     {
-//       id: 2,
-//       name: 'Arttu Viskari',
-//       number: '056-84848484',
-//     },
-//     {
-//       id: 3,
-//       name: 'Jaahas',
-//       number: '83838-030303'
+    },
+    {
+      id: 2,
+      name: 'Arttu Viskari',
+      number: '056-84848484',
+    },
+    {
+      id: 3,
+      name: 'Jaahas',
+      number: '83838-030303'
     
-//     },
-//   ]
+    },
+  ]
   app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
+  })
+  app.get('/info', (req, res) => {
+    Person.find({}).then(persons=> {
+      res.json('luettelossa on ' + persons.length + ' henkilöä   ' + new Date())  
+    })
+    
   })
   
   app.get('/api/persons', (request, response) => {
@@ -45,7 +51,6 @@ app.use(express.static('build'))
 
   app.post('/api/persons', (request, response) => {
     const body = request.body
-    console.log(request.headers)
 
     if (!body.name) {
       return response.status(400).json({error:'nimi puuttuu!'})
@@ -57,47 +62,63 @@ app.use(express.static('build'))
       return response.status(400).json({error:'numero puuttuu!'})
     }
   
-    const person = {
+    const person = new Person({
       id: generateId(),
       name: body.name,
       number: body.number,
       
-    }
+    })
   
-    persons = persons.concat(person)
-  
-    response.json(person)
-    
-  })
-
-  app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(p => p.id === id)
-    
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end()
-    }
-  })
-
-  app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(p => p.id !== id)
-
-    response.status(204).end()
-  })
-
-  app.get('/info', (req, res) => {
-    res.json('luettelossa on ' + persons.length + ' henkilöä' + new Date())
+    person.save().then(savedPerson => {
+      response.json(savedPerson.toJSON())
+    })   
   })
   
+
+  app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person.toJSON())
+      } else {
+        response.status(404).send({ error: 'id oikeassa muodossa mutta ei vastaavuuksia' })
+      }
+    })
+    .catch(error => next(error))
+  })
+
+  app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      if(result){
+      response.status(204).end()
+      } else {
+        response.status(404).send({error: 'ei vastaavuuksia, ehkä tämä id on jo poistettu?'}) 
+      }
+    })
+   
+    .catch(error => next(error))
+
+
+})
   const generateId = () => {
     const maxId = persons.length > 0
       ? Math.max(...persons.map(p => p.id))
       : 0
     return maxId + 1
   }
+  
+
+  const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+      return response.status(400).send({ error: 'id väärässä muodossa' })
+    } 
+  
+    next(error)
+  }
+  
+  app.use(errorHandler)
 
 
 const PORT = process.env.PORT
