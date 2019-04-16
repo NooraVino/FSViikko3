@@ -2,8 +2,8 @@ POST http://localhost:3001/api/persons/
 Content-Type: application/json
 
 {
-    "name": "Noora",
-    "number":  "23"   
+    "name": "MirkaVirolainen",
+    "number":  "275775444444"   
 }
 
 # https://fs-puh-app.herokuapp.com/api/persons
