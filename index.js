@@ -106,7 +106,7 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'id väärässä muodossa' })
   } else if (error.name === 'ValidationError') {
-    return response.status(400).send({ error: 'nojoo' })
+    return response.status(400).send({ error: 'nimen ja numeron tulee olla vähintään 3 merkkiä pitkiä' })
   }
   next(error)
 }
